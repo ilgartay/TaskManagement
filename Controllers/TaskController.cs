@@ -12,10 +12,17 @@ namespace TaskManagement.API.Controllers
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;
+        private readonly ITaskCommentService _commentService;
+        private readonly ITaskAttachmentService _attachmentService;
 
-        public TasksController(ITaskService taskService)
+        public TasksController(
+            ITaskService taskService,
+            ITaskCommentService commentService,
+            ITaskAttachmentService attachmentService)
         {
             _taskService = taskService;
+            _commentService = commentService;
+            _attachmentService = attachmentService;
         }
 
         private Guid GetUserId() =>
@@ -43,6 +50,20 @@ namespace TaskManagement.API.Controllers
         public async Task<IActionResult> GetFiltered([FromQuery] TaskFilterDto filterDto)
         {
             var tasks = await _taskService.GetFilteredAsync(GetUserId(), filterDto);
+            return Ok(tasks);
+        }
+
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var stats = await _taskService.GetStatsAsync(GetUserId());
+            return Ok(stats);
+        }
+
+        [HttpGet("overdue")]
+        public async Task<IActionResult> GetOverdue()
+        {
+            var tasks = await _taskService.GetOverdueAsync(GetUserId());
             return Ok(tasks);
         }
 
@@ -76,6 +97,45 @@ namespace TaskManagement.API.Controllers
                 return NotFound(new { message = "Görev bulunamadı." });
 
             return NoContent();
+        }
+
+        [HttpPost("{taskId}/comments")]
+        public async Task<IActionResult> AddComment(Guid taskId, CreateTaskCommentDto dto)
+        {
+            var comment = await _commentService.CreateAsync(taskId, GetUserId(), dto);
+            return Ok(comment);
+        }
+
+        [HttpGet("{taskId}/comments")]
+        public async Task<IActionResult> GetComments(Guid taskId)
+        {
+            var comments = await _commentService.GetByTaskIdAsync(taskId);
+            return Ok(comments);
+        }
+
+        [HttpPost("{taskId}/attachments")]
+        public async Task<IActionResult> UploadAttachment(Guid taskId, IFormFile file)
+        {
+            var attachment = await _attachmentService.UploadAsync(taskId, file);
+            return Ok(attachment);
+        }
+
+        [HttpGet("{taskId}/attachments")]
+        public async Task<IActionResult> GetAttachments(Guid taskId)
+        {
+            var attachments = await _attachmentService.GetByTaskIdAsync(taskId);
+            return Ok(attachments);
+        }
+
+        [HttpGet("attachments/{attachmentId}/download")]
+        public async Task<IActionResult> DownloadAttachment(Guid attachmentId)
+        {
+            var result = await _attachmentService.DownloadAsync(attachmentId);
+
+            if (result == null)
+                return NotFound(new { message = "Dosya bulunamadı." });
+
+            return File(result.Value.Content, result.Value.ContentType, result.Value.FileName);
         }
     }
 }

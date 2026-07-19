@@ -22,6 +22,13 @@ namespace TaskManagement.API.Mappings
         .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
     CreateMap<CreateTaskDto, TaskItem>();
     CreateMap<UpdateTaskDto, TaskItem>();
+    // TaskAttachment mappings
+CreateMap<TaskAttachment, TaskAttachmentDto>();
+
+    
+CreateMap<TaskComment, TaskCommentDto>()
+    .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username));
+CreateMap<CreateTaskCommentDto, TaskComment>();
         }
     }
 }

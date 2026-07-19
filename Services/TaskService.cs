@@ -64,6 +64,39 @@ namespace TaskManagement.API.Services
 
             return _mapper.Map<TaskItemDto>(task);
         }
+        public async Task<TaskStatsDto> GetStatsAsync(Guid userId)
+{
+    var tasks = _context.Tasks.Where(t => t.UserId == userId);
+
+    return new TaskStatsDto
+    {
+        TotalTasks = await tasks.CountAsync(),
+        PendingTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Pending),
+        InProgressTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.InProgress),
+        CompletedTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Completed),
+        CancelledTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Cancelled),
+        OverdueTasks = await tasks.CountAsync(t =>
+            t.DueDate != null &&
+            t.DueDate < DateTime.UtcNow &&
+            t.Status != Models.TaskStatus.Completed &&
+            t.Status != Models.TaskStatus.Cancelled)
+    };
+}
+
+public async Task<IEnumerable<TaskItemDto>> GetOverdueAsync(Guid userId)
+{
+    var tasks = await _context.Tasks
+        .Include(t => t.Category)
+        .Where(t => t.UserId == userId &&
+                    t.DueDate != null &&
+                    t.DueDate < DateTime.UtcNow &&
+                    t.Status != Models.TaskStatus.Completed &&
+                    t.Status != Models.TaskStatus.Cancelled)
+        .OrderBy(t => t.DueDate)
+        .ToListAsync();
+
+    return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
+}
 
         public async Task<bool> DeleteAsync(Guid id)
         {
@@ -104,8 +137,13 @@ namespace TaskManagement.API.Services
                 query = query.Where(t => t.Title.Contains(filterDto.SearchTerm) ||
                                          (t.Description != null && t.Description.Contains(filterDto.SearchTerm)));
 
-            var tasks = await query.ToListAsync();
-            return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
+            var tasks = await query
+    .OrderByDescending(t => t.CreatedAt)
+    .Skip((filterDto.Page - 1) * filterDto.PageSize)
+    .Take(filterDto.PageSize)
+    .ToListAsync();
+
+return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
         }
     }
 }

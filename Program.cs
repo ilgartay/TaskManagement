@@ -5,13 +5,26 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TaskManagement.API.Data;
+using TaskManagement.API.Middleware;
 using TaskManagement.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<ITaskAttachmentService, TaskAttachmentService>();
 
 var dbProvider = builder.Configuration["DatabaseProvider"];
 
@@ -51,6 +64,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -61,7 +75,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT token'ı girin (Bearer yazmadan, sadece token)."
+        Description = "JWT token'ı girin."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -82,6 +96,8 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -90,6 +106,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAngular");
 
 app.UseAuthentication();
 app.UseAuthorization();

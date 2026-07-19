@@ -10,5 +10,7 @@ namespace TaskManagement.API.DTOs
         public DateTime? DueDateFrom { get; set; }
         public DateTime? DueDateTo { get; set; }
         public string? SearchTerm { get; set; }
+        public int Page { get; set; } = 1;
+public int PageSize { get; set; } = 10;
     }
 }
