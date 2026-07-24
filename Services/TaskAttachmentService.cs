@@ -22,9 +22,11 @@ namespace TaskManagement.API.Services
                 Directory.CreateDirectory(_uploadPath);
         }
 
-        public async Task<TaskAttachmentDto> UploadAsync(Guid taskId, IFormFile file)
+        public async Task<TaskAttachmentDto> UploadAsync(Guid userId, Guid taskId, IFormFile file)
         {
-            var taskExists = await _context.Tasks.AnyAsync(t => t.Id == taskId);
+            var taskExists = await _context.Tasks
+                .AnyAsync(t => t.Id == taskId && t.UserId == userId);
+
             if (!taskExists)
                 throw new KeyNotFoundException("Görev bulunamadı.");
 
@@ -54,18 +56,29 @@ namespace TaskManagement.API.Services
             return _mapper.Map<TaskAttachmentDto>(attachment);
         }
 
-        public async Task<IEnumerable<TaskAttachmentDto>> GetByTaskIdAsync(Guid taskId)
+        public async Task<IEnumerable<TaskAttachmentDto>> GetByTaskIdAsync(Guid userId, Guid taskId)
         {
+            var taskExists = await _context.Tasks
+                .AnyAsync(t => t.Id == taskId && t.UserId == userId);
+
+            if (!taskExists)
+                throw new KeyNotFoundException("Görev bulunamadı.");
+
             var attachments = await _context.TaskAttachments
-                .Where(a => a.TaskId == taskId)
+                .AsNoTracking()
+                .Where(a => a.TaskId == taskId && a.Task.UserId == userId)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<TaskAttachmentDto>>(attachments);
         }
 
-        public async Task<(byte[] Content, string ContentType, string FileName)?> DownloadAsync(Guid attachmentId)
+        public async Task<(byte[] Content, string ContentType, string FileName)?> DownloadAsync(
+            Guid userId,
+            Guid attachmentId)
         {
-            var attachment = await _context.TaskAttachments.FindAsync(attachmentId);
+            var attachment = await _context.TaskAttachments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == attachmentId && a.Task.UserId == userId);
 
             if (attachment == null || !File.Exists(attachment.FilePath))
                 return null;

@@ -31,22 +31,26 @@ namespace TaskManagement.API.Services
         public async Task<IEnumerable<CategoryDto>> GetAllAsync(Guid userId)
         {
             var categories = await _context.Categories
+                .AsNoTracking()
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<CategoryDto>>(categories);
         }
 
-        public async Task<CategoryDto?> GetByIdAsync(Guid id)
+        public async Task<CategoryDto?> GetByIdAsync(Guid userId, Guid id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Categories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
             return category == null ? null : _mapper.Map<CategoryDto>(category);
         }
 
-        public async Task<CategoryDto> UpdateAsync(Guid id, UpdateCategoryDto updateCategoryDto)
+        public async Task<CategoryDto> UpdateAsync(Guid userId, Guid id, UpdateCategoryDto updateCategoryDto)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
             if (category == null)
                 throw new KeyNotFoundException("Kategori bulunamadı.");
@@ -58,9 +62,10 @@ namespace TaskManagement.API.Services
             return _mapper.Map<CategoryDto>(category);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(Guid userId, Guid id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
             if (category == null)
                 return false;

@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.DTOs;
+using TaskManagement.API.Extensions;
 using TaskManagement.API.Services;
 
 namespace TaskManagement.API.Controllers
@@ -49,8 +49,7 @@ namespace TaskManagement.API.Controllers
         [HttpGet("profile")]
         public async Task<IActionResult> Profile()
         {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var user = await _userService.GetByIdAsync(userId);
+            var user = await _userService.GetByIdAsync(User.GetRequiredUserId());
             return Ok(user);
         }
     }

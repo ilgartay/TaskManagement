@@ -19,6 +19,8 @@ namespace TaskManagement.API.Services
 
         public async Task<TaskItemDto> CreateAsync(Guid userId, CreateTaskDto createTaskDto)
         {
+            await EnsureCategoryBelongsToUserAsync(userId, createTaskDto.CategoryId);
+
             var task = _mapper.Map<TaskItem>(createTaskDto);
             task.UserId = userId;
 
@@ -31,6 +33,7 @@ namespace TaskManagement.API.Services
         public async Task<IEnumerable<TaskItemDto>> GetAllAsync(Guid userId)
         {
             var tasks = await _context.Tasks
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Where(t => t.UserId == userId)
                 .ToListAsync();
@@ -38,69 +41,81 @@ namespace TaskManagement.API.Services
             return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
         }
 
-        public async Task<TaskItemDto?> GetByIdAsync(Guid id)
+        public async Task<TaskItemDto?> GetByIdAsync(Guid userId, Guid id)
         {
             var task = await _context.Tasks
+                .AsNoTracking()
                 .Include(t => t.Category)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             return task == null ? null : _mapper.Map<TaskItemDto>(task);
         }
 
-        public async Task<TaskItemDto> UpdateAsync(Guid id, UpdateTaskDto updateTaskDto)
+        public async Task<TaskItemDto> UpdateAsync(Guid userId, Guid id, UpdateTaskDto updateTaskDto)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             if (task == null)
                 throw new KeyNotFoundException("Görev bulunamadı.");
+
+            await EnsureCategoryBelongsToUserAsync(userId, updateTaskDto.CategoryId);
 
             _mapper.Map(updateTaskDto, task);
             task.UpdatedAt = DateTime.UtcNow;
 
             if (task.Status == Models.TaskStatus.Completed && task.CompletedAt == null)
                 task.CompletedAt = DateTime.UtcNow;
+            else if (task.Status != Models.TaskStatus.Completed)
+                task.CompletedAt = null;
 
             await _context.SaveChangesAsync();
+            await _context.Entry(task).Reference(t => t.Category).LoadAsync();
 
             return _mapper.Map<TaskItemDto>(task);
         }
+
         public async Task<TaskStatsDto> GetStatsAsync(Guid userId)
-{
-    var tasks = _context.Tasks.Where(t => t.UserId == userId);
+        {
+            var tasks = _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.UserId == userId);
 
-    return new TaskStatsDto
-    {
-        TotalTasks = await tasks.CountAsync(),
-        PendingTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Pending),
-        InProgressTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.InProgress),
-        CompletedTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Completed),
-        CancelledTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Cancelled),
-        OverdueTasks = await tasks.CountAsync(t =>
-            t.DueDate != null &&
-            t.DueDate < DateTime.UtcNow &&
-            t.Status != Models.TaskStatus.Completed &&
-            t.Status != Models.TaskStatus.Cancelled)
-    };
-}
-
-public async Task<IEnumerable<TaskItemDto>> GetOverdueAsync(Guid userId)
-{
-    var tasks = await _context.Tasks
-        .Include(t => t.Category)
-        .Where(t => t.UserId == userId &&
+            return new TaskStatsDto
+            {
+                TotalTasks = await tasks.CountAsync(),
+                PendingTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Pending),
+                InProgressTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.InProgress),
+                CompletedTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Completed),
+                CancelledTasks = await tasks.CountAsync(t => t.Status == Models.TaskStatus.Cancelled),
+                OverdueTasks = await tasks.CountAsync(t =>
                     t.DueDate != null &&
                     t.DueDate < DateTime.UtcNow &&
                     t.Status != Models.TaskStatus.Completed &&
                     t.Status != Models.TaskStatus.Cancelled)
-        .OrderBy(t => t.DueDate)
-        .ToListAsync();
+            };
+        }
 
-    return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
-}
-
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<IEnumerable<TaskItemDto>> GetOverdueAsync(Guid userId)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var tasks = await _context.Tasks
+                .AsNoTracking()
+                .Include(t => t.Category)
+                .Where(t => t.UserId == userId &&
+                            t.DueDate != null &&
+                            t.DueDate < DateTime.UtcNow &&
+                            t.Status != Models.TaskStatus.Completed &&
+                            t.Status != Models.TaskStatus.Cancelled)
+                .OrderBy(t => t.DueDate)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
+        }
+
+        public async Task<bool> DeleteAsync(Guid userId, Guid id)
+        {
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
             if (task == null)
                 return false;
@@ -114,6 +129,7 @@ public async Task<IEnumerable<TaskItemDto>> GetOverdueAsync(Guid userId)
         public async Task<IEnumerable<TaskItemDto>> GetFilteredAsync(Guid userId, TaskFilterDto filterDto)
         {
             var query = _context.Tasks
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Where(t => t.UserId == userId)
                 .AsQueryable();
@@ -138,12 +154,25 @@ public async Task<IEnumerable<TaskItemDto>> GetOverdueAsync(Guid userId)
                                          (t.Description != null && t.Description.Contains(filterDto.SearchTerm)));
 
             var tasks = await query
-    .OrderByDescending(t => t.CreatedAt)
-    .Skip((filterDto.Page - 1) * filterDto.PageSize)
-    .Take(filterDto.PageSize)
-    .ToListAsync();
+                .OrderByDescending(t => t.CreatedAt)
+                .ThenByDescending(t => t.Id)
+                .Skip((filterDto.Page - 1) * filterDto.PageSize)
+                .Take(filterDto.PageSize)
+                .ToListAsync();
 
-return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
+            return _mapper.Map<IEnumerable<TaskItemDto>>(tasks);
+        }
+
+        private async Task EnsureCategoryBelongsToUserAsync(Guid userId, Guid? categoryId)
+        {
+            if (categoryId == null)
+                return;
+
+            var categoryExists = await _context.Categories
+                .AnyAsync(c => c.Id == categoryId && c.UserId == userId);
+
+            if (!categoryExists)
+                throw new KeyNotFoundException("Kategori bulunamadı.");
         }
     }
 }

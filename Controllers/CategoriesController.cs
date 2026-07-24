@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.DTOs;
+using TaskManagement.API.Extensions;
 using TaskManagement.API.Services;
 
 namespace TaskManagement.API.Controllers
@@ -18,20 +18,17 @@ namespace TaskManagement.API.Controllers
             _categoryService = categoryService;
         }
 
-        private Guid GetUserId() =>
-            Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var categories = await _categoryService.GetAllAsync(GetUserId());
+            var categories = await _categoryService.GetAllAsync(User.GetRequiredUserId());
             return Ok(categories);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
+            var category = await _categoryService.GetByIdAsync(User.GetRequiredUserId(), id);
 
             if (category == null)
                 return NotFound(new { message = "Kategori bulunamadı." });
@@ -42,7 +39,7 @@ namespace TaskManagement.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateCategoryDto createCategoryDto)
         {
-            var category = await _categoryService.CreateAsync(GetUserId(), createCategoryDto);
+            var category = await _categoryService.CreateAsync(User.GetRequiredUserId(), createCategoryDto);
             return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
         }
 
@@ -51,7 +48,7 @@ namespace TaskManagement.API.Controllers
         {
             try
             {
-                var category = await _categoryService.UpdateAsync(id, updateCategoryDto);
+                var category = await _categoryService.UpdateAsync(User.GetRequiredUserId(), id, updateCategoryDto);
                 return Ok(category);
             }
             catch (KeyNotFoundException ex)
@@ -63,7 +60,7 @@ namespace TaskManagement.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var deleted = await _categoryService.DeleteAsync(id);
+            var deleted = await _categoryService.DeleteAsync(User.GetRequiredUserId(), id);
 
             if (!deleted)
                 return NotFound(new { message = "Kategori bulunamadı." });

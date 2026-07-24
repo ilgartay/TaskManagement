@@ -17,9 +17,11 @@ namespace TaskManagement.API.Services
             _mapper = mapper;
         }
 
-        public async Task<TaskCommentDto> CreateAsync(Guid taskId, Guid userId, CreateTaskCommentDto dto)
+        public async Task<TaskCommentDto> CreateAsync(Guid userId, Guid taskId, CreateTaskCommentDto dto)
         {
-            var taskExists = await _context.Tasks.AnyAsync(t => t.Id == taskId);
+            var taskExists = await _context.Tasks
+                .AnyAsync(t => t.Id == taskId && t.UserId == userId);
+
             if (!taskExists)
                 throw new KeyNotFoundException("Görev bulunamadı.");
 
@@ -35,11 +37,18 @@ namespace TaskManagement.API.Services
             return _mapper.Map<TaskCommentDto>(comment);
         }
 
-        public async Task<IEnumerable<TaskCommentDto>> GetByTaskIdAsync(Guid taskId)
+        public async Task<IEnumerable<TaskCommentDto>> GetByTaskIdAsync(Guid userId, Guid taskId)
         {
+            var taskExists = await _context.Tasks
+                .AnyAsync(t => t.Id == taskId && t.UserId == userId);
+
+            if (!taskExists)
+                throw new KeyNotFoundException("Görev bulunamadı.");
+
             var comments = await _context.TaskComments
+                .AsNoTracking()
                 .Include(c => c.User)
-                .Where(c => c.TaskId == taskId)
+                .Where(c => c.TaskId == taskId && c.Task.UserId == userId)
                 .OrderBy(c => c.CreatedAt)
                 .ToListAsync();
 

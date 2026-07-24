@@ -6,8 +6,8 @@ namespace TaskManagement.API.Services
     {
         Task<CategoryDto> CreateAsync(Guid userId, CreateCategoryDto createCategoryDto);
         Task<IEnumerable<CategoryDto>> GetAllAsync(Guid userId);
-        Task<CategoryDto?> GetByIdAsync(Guid id);
-        Task<CategoryDto> UpdateAsync(Guid id, UpdateCategoryDto updateCategoryDto);
-        Task<bool> DeleteAsync(Guid id);
+        Task<CategoryDto?> GetByIdAsync(Guid userId, Guid id);
+        Task<CategoryDto> UpdateAsync(Guid userId, Guid id, UpdateCategoryDto updateCategoryDto);
+        Task<bool> DeleteAsync(Guid userId, Guid id);
     }
 }
