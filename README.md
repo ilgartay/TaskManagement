@@ -2,8 +2,8 @@
 
 ## Yerel JWT anahtarı
 
-JWT imza anahtarı güvenlik nedeniyle `appsettings.json` içinde tutulmaz. Projeyi
-ilk kez çalıştırmadan önce makineye özel bir anahtar oluşturun:
+JWT imza anahtarı `appsettings.json` içinde tutulmaz. Projeyi
+ilk kez çalıştırırken önce makineye özel bir anahtar oluşturun:
 
 ```bash
 dotnet user-secrets set "Jwt:Key" "$(openssl rand -hex 32)"
@@ -14,7 +14,7 @@ değişkeniyle sağlayabilirsiniz.
 
 ## Demo kullanıcı
 
-Geliştirme ortamında arayüzü denemek için aşağıdaki hesap kullanılabilir:
+Geliştirme ortamında arayüzü denemek için aşağıdaki hesap kullanın:
 
 - Kullanıcı adı: `demo`
 - Şifre: `Demo123!`
