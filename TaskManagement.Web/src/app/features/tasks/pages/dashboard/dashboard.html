@@ -1,0 +1,186 @@
+<div class="dashboard-page">
+  <mat-toolbar class="topbar">
+    <a class="brand" href="/tasks">
+      <span class="brand-mark">T</span>
+      <span>Task Management</span>
+    </a>
+
+    <span class="spacer"></span>
+
+    <div class="user-area">
+      <div class="user-copy">
+        <strong
+          >{{ authService.currentUser()?.firstName }}
+          {{ authService.currentUser()?.lastName }}</strong
+        >
+        <span>{{ authService.currentUser()?.email }}</span>
+      </div>
+      <button mat-icon-button aria-label="Çıkış yap" (click)="authService.logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <main class="dashboard-content">
+    <header class="page-heading">
+      <div>
+        <p class="eyebrow">GENEL BAKIŞ</p>
+        <h1>Görevlerin</h1>
+        <p>Bugünkü işlerini gözden geçir ve yeni bir görev ekle.</p>
+      </div>
+      <button mat-stroked-button type="button" (click)="loadDashboard()">
+        <mat-icon>refresh</mat-icon>
+        Yenile
+      </button>
+    </header>
+
+    @if (errorMessage()) {
+      <p class="error-message">{{ errorMessage() }}</p>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="44"></mat-spinner>
+        <span>Görevler yükleniyor...</span>
+      </div>
+    } @else {
+      <section class="stats-grid" aria-label="Görev istatistikleri">
+        <mat-card>
+          <span class="stat-icon blue"><mat-icon>assignment</mat-icon></span>
+          <div>
+            <strong>{{ stats()?.totalTasks ?? 0 }}</strong
+            ><span>Toplam görev</span>
+          </div>
+        </mat-card>
+        <mat-card>
+          <span class="stat-icon amber"><mat-icon>schedule</mat-icon></span>
+          <div>
+            <strong>{{ stats()?.pendingTasks ?? 0 }}</strong
+            ><span>Bekleyen</span>
+          </div>
+        </mat-card>
+        <mat-card>
+          <span class="stat-icon green"><mat-icon>task_alt</mat-icon></span>
+          <div>
+            <strong>{{ stats()?.completedTasks ?? 0 }}</strong
+            ><span>Tamamlanan</span>
+          </div>
+        </mat-card>
+        <mat-card>
+          <span class="stat-icon red"><mat-icon>event_busy</mat-icon></span>
+          <div>
+            <strong>{{ stats()?.overdueTasks ?? 0 }}</strong
+            ><span>Vadesi geçen</span>
+          </div>
+        </mat-card>
+      </section>
+
+      <section class="workspace-grid">
+        <mat-card class="quick-add-card">
+          <mat-card-header>
+            <mat-card-title>Yeni görev</mat-card-title>
+            <mat-card-subtitle>Listeye hızlıca bir iş ekle.</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <form [formGroup]="taskForm" (ngSubmit)="createTask()">
+              <mat-form-field appearance="outline">
+                <mat-label>Görev başlığı</mat-label>
+                <input matInput formControlName="title" />
+                @if (taskForm.controls.title.touched && taskForm.controls.title.invalid) {
+                  <mat-error>Görev başlığı zorunludur.</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Öncelik</mat-label>
+                <mat-select formControlName="priority">
+                  <mat-option [value]="Priority.Low">Düşük</mat-option>
+                  <mat-option [value]="Priority.Normal">Normal</mat-option>
+                  <mat-option [value]="Priority.High">Yüksek</mat-option>
+                  <mat-option [value]="Priority.Urgent">Acil</mat-option>
+                  <mat-option [value]="Priority.Critical">Kritik</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Kategori</mat-label>
+                <mat-select formControlName="categoryId">
+                  <mat-option value="">Kategorisiz</mat-option>
+                  @for (category of categories(); track category.id) {
+                    <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Son tarih</mat-label>
+                <input matInput type="date" formControlName="dueDate" />
+              </mat-form-field>
+
+              <button mat-flat-button type="submit" [disabled]="saving()">
+                <mat-icon>{{ saving() ? 'hourglass_empty' : 'add' }}</mat-icon>
+                {{ saving() ? 'Kaydediliyor...' : 'Görev ekle' }}
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <section class="task-list-section">
+          <div class="section-heading">
+            <h2>Görev listesi</h2>
+            <span>{{ tasks().length }} kayıt</span>
+          </div>
+
+          <div class="task-list">
+            @for (task of tasks(); track task.id) {
+              <mat-card class="task-card" [class.completed]="task.status === TaskStatus.Completed">
+                <div class="task-main">
+                  <div class="task-title-row">
+                    <h3>{{ task.title }}</h3>
+                    <span class="priority-badge priority-{{ task.priority }}">
+                      {{ priorityLabel(task.priority) }}
+                    </span>
+                  </div>
+
+                  <div class="task-meta">
+                    <span
+                      ><mat-icon>radio_button_checked</mat-icon>{{ statusLabel(task.status) }}</span
+                    >
+                    @if (task.categoryName) {
+                      <span><mat-icon>sell</mat-icon>{{ task.categoryName }}</span>
+                    }
+                    @if (task.dueDate) {
+                      <span><mat-icon>event</mat-icon>{{ task.dueDate | date: 'dd.MM.yyyy' }}</span>
+                    }
+                  </div>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <div class="task-actions">
+                  @if (task.status !== TaskStatus.Completed) {
+                    <button mat-button type="button" (click)="completeTask(task)">
+                      <mat-icon>check</mat-icon>
+                      Tamamla
+                    </button>
+                  }
+                  <button mat-button type="button" class="delete-button" (click)="deleteTask(task)">
+                    <mat-icon>delete_outline</mat-icon>
+                    Sil
+                  </button>
+                </div>
+              </mat-card>
+            } @empty {
+              <div class="empty-state">
+                <mat-icon>playlist_add</mat-icon>
+                <h3>Henüz görev yok</h3>
+                <p>İlk görevini soldaki formdan ekleyebilirsin.</p>
+              </div>
+            }
+          </div>
+        </section>
+      </section>
+    }
+  </main>
+</div>

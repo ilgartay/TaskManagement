@@ -1,0 +1,106 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f3f5f8;
+}
+
+.login-card {
+  width: min(100%, 420px);
+  padding: 32px;
+  border: 1px solid #e1e5ec;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+}
+
+.page-title {
+  margin-bottom: 28px;
+  text-align: center;
+
+  h1 {
+    margin: 14px 0 8px;
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0;
+    color: #687386;
+  }
+}
+
+.logo {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: #2563eb;
+}
+
+form {
+  display: grid;
+  gap: 8px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.submit-button {
+  min-height: 46px;
+  margin-top: 4px;
+
+  mat-spinner {
+    margin: auto;
+  }
+}
+
+.register-link {
+  margin: 22px 0 0;
+  color: #687386;
+  font-size: 0.9rem;
+  text-align: center;
+
+  a {
+    color: #2563eb;
+    font-weight: 500;
+    text-decoration: none;
+  }
+}
+
+.message {
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.error-message {
+  color: #9f1d1d;
+  background: #fff0f0;
+}
+
+.info-message {
+  color: #1d4e89;
+  background: #edf5ff;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 24px 18px;
+  }
+}

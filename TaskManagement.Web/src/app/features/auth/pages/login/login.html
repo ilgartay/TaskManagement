@@ -1,0 +1,64 @@
+<main class="login-page">
+  <mat-card class="login-card">
+    <div class="page-title">
+      <span class="logo">T</span>
+      <h1>Görev Yönetim Sistemi</h1>
+      <p>Devam etmek için hesabınıza giriş yapın.</p>
+    </div>
+
+    @if (infoMessage()) {
+      <p class="message info-message">{{ infoMessage() }}</p>
+    }
+
+    @if (errorMessage()) {
+      <p class="message error-message">{{ errorMessage() }}</p>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Kullanıcı adı veya e-posta</mat-label>
+        <input matInput formControlName="usernameOrEmail" autocomplete="username" />
+        @if (
+          loginForm.controls.usernameOrEmail.touched && loginForm.controls.usernameOrEmail.invalid
+        ) {
+          <mat-error>Bu alan zorunludur.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Şifre</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          [type]="passwordVisible() ? 'text' : 'password'"
+          autocomplete="current-password"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="Şifre görünürlüğünü değiştir"
+          (click)="passwordVisible.set(!passwordVisible())"
+        >
+          <mat-icon>{{ passwordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <mat-error>Şifre en az 6 karakter olmalıdır.</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-flat-button type="submit" class="submit-button" [disabled]="loading()">
+        @if (loading()) {
+          <mat-spinner diameter="22"></mat-spinner>
+        } @else {
+          Giriş yap
+        }
+      </button>
+    </form>
+
+    <p class="register-link">
+      Hesabınız yok mu?
+      <a routerLink="/register">Kayıt olun</a>
+    </p>
+  </mat-card>
+</main>
