@@ -204,6 +204,20 @@ namespace TaskManagement.API.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "demo@example.com",
+                            FirstName = "Demo",
+                            IsActive = true,
+                            LastName = "User",
+                            PasswordHash = "$2a$12$cGT9TW5Yj0qase79ysDFju.BCTU3/xUjXlUSrPTyL0RHupdWLcqku",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                            Username = "demo"
+                        });
                 });
 
             modelBuilder.Entity("TaskManagement.API.Models.Category", b =>

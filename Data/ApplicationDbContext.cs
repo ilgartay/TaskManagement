@@ -63,11 +63,11 @@ namespace TaskManagement.API.Data
         Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
         Username = "demo",
         Email = "demo@example.com",
-        PasswordHash = "AQAAAAIAAYagAAAAE...", 
+        PasswordHash = "$2a$12$cGT9TW5Yj0qase79ysDFju.BCTU3/xUjXlUSrPTyL0RHupdWLcqku",
         FirstName = "Demo",
         LastName = "User",
-        CreatedAt = new DateTime(2026, 1, 1),
-        UpdatedAt = new DateTime(2026, 1, 1),
+        CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+        UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         IsActive = true
     }
 );
