@@ -1,0 +1,2 @@
+.upload-box { display: grid; place-items: center; gap: 3px; padding: 18px; border: 1px dashed var(--border-color); border-radius: 12px; color: #2563eb; background: var(--column-bg); cursor: pointer; }
+.upload-box input { display: none; }.upload-box small { color: var(--muted-text); }.upload-box.disabled { opacity: .6; pointer-events: none; }.upload-error { margin: 5px 0 0; color: #b42323; font-size: .76rem; }

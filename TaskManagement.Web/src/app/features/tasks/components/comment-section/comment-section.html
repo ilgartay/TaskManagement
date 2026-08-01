@@ -1,0 +1,9 @@
+<div class="comments">
+  @for (item of comments(); track item.id) {
+    <article><div><strong>{{ item.username }}</strong><time>{{ item.createdAt | date: 'dd.MM.yyyy HH:mm' }}</time></div><p>{{ item.comment }}</p></article>
+  } @empty { <p class="empty-comment">Henüz yorum yok.</p> }
+</div>
+<div class="comment-form">
+  <mat-form-field appearance="outline"><mat-label>Yorum yaz</mat-label><textarea matInput rows="2" maxlength="1000" [value]="value()" (input)="value.set($any($event.target).value)"></textarea></mat-form-field>
+  <button mat-flat-button type="button" [disabled]="saving() || !value().trim()" (click)="submit()"><mat-icon>send</mat-icon>Gönder</button>
+</div>

@@ -1,0 +1,9 @@
+:host { display: block; }
+.form-card { overflow: hidden; border-radius: 18px; background: var(--card-bg); color: var(--text-color); }
+mat-card-content { padding-top: 22px; }
+form { display: grid; }
+mat-form-field { width: 100%; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.form-actions button:last-child { min-height: 44px; }
+@media (max-width: 520px) { .form-row { grid-template-columns: 1fr; gap: 0; } }

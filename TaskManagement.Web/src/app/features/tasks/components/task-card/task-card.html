@@ -1,0 +1,46 @@
+<mat-card cdkDrag [cdkDragData]="task()" class="task-card" [class.completed]="task().status === TaskStatus.Completed" [class.overdue]="dueState(task()) === 'overdue'">
+  <div class="card-top">
+    <button class="drag-handle" cdkDragHandle mat-icon-button type="button" aria-label="Görevi taşı">
+      <mat-icon>drag_indicator</mat-icon>
+    </button>
+    <div class="task-copy" (click)="view.emit(task())">
+      <h3>{{ task().title }}</h3>
+      @if (task().description) { <p>{{ task().description }}</p> }
+    </div>
+    <span class="priority priority-{{ task().priority }}">{{ priorityLabel(task().priority) }}</span>
+  </div>
+
+  <div class="task-meta">
+    <span><mat-icon>radio_button_checked</mat-icon>{{ statusLabel(task().status) }}</span>
+    @if (task().categoryName) {
+      <span class="category"><i [style.background]="categoryColor()"></i>{{ task().categoryName }}</span>
+    }
+    @if (task().dueDate) {
+      <span [class.warning]="dueState(task()) !== 'none'">
+        <mat-icon>{{ dueState(task()) === 'overdue' ? 'event_busy' : 'event' }}</mat-icon>
+        {{ task().dueDate | date: 'dd.MM.yyyy' }}
+        @if (dueState(task()) === 'overdue') { · Gecikti }
+        @else if (dueState(task()) === 'soon') { · Yaklaşıyor }
+      </span>
+    }
+  </div>
+
+  <div class="progress-row">
+    <mat-progress-bar mode="determinate" [value]="taskProgress(task().status)" />
+    <small>%{{ taskProgress(task().status) }}</small>
+  </div>
+
+  <div class="task-actions">
+    <button mat-button type="button" (click)="view.emit(task())"><mat-icon>visibility</mat-icon>Detay</button>
+    <button mat-button type="button" (click)="edit.emit(task())"><mat-icon>edit</mat-icon>Düzenle</button>
+    <button mat-icon-button type="button" [matMenuTriggerFor]="statusMenu" aria-label="Durumu değiştir"><mat-icon>swap_horiz</mat-icon></button>
+    <mat-menu #statusMenu="matMenu">
+      <button mat-menu-item (click)="statusChange.emit({ task: task(), status: TaskStatus.Pending })">Bekliyor</button>
+      <button mat-menu-item (click)="statusChange.emit({ task: task(), status: TaskStatus.InProgress })">Devam ediyor</button>
+      <button mat-menu-item (click)="statusChange.emit({ task: task(), status: TaskStatus.Completed })">Tamamlandı</button>
+      <button mat-menu-item (click)="statusChange.emit({ task: task(), status: TaskStatus.Cancelled })">İptal edildi</button>
+    </mat-menu>
+    <span class="spacer"></span>
+    <button mat-icon-button type="button" class="delete" aria-label="Görevi sil" (click)="remove.emit(task())"><mat-icon>delete_outline</mat-icon></button>
+  </div>
+</mat-card>

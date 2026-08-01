@@ -59,3 +59,23 @@ export interface TaskStats {
   cancelledTasks: number;
   overdueTasks: number;
 }
+
+export interface TaskAttachment {
+  id: string;
+  taskId: string;
+  fileName: string;
+  fileSize: number;
+  contentType: string;
+  uploadedAt: string;
+}
+
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  userId: string;
+  username: string;
+  comment: string;
+  createdAt: string;
+}
+
+export type TaskSort = 'created-desc' | 'due-asc' | 'priority-desc' | 'title-asc';

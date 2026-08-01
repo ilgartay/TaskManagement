@@ -1,0 +1,7 @@
+<label class="upload-box" [class.disabled]="uploading()">
+  <input type="file" [disabled]="uploading()" (change)="choose($event)" />
+  <mat-icon>{{ uploading() ? 'hourglass_empty' : 'cloud_upload' }}</mat-icon>
+  <span>{{ uploading() ? 'Yükleniyor...' : 'Dosya seç' }}</span>
+  <small>En fazla 10 MB</small>
+</label>
+@if (error()) { <p class="upload-error">{{ error() }}</p> }

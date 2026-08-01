@@ -1,0 +1,9 @@
+<nav class="pagination" aria-label="Sayfalama">
+  <button mat-icon-button type="button" aria-label="Önceki sayfa" [disabled]="page() <= 1" (click)="move(-1)">
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+  <span>{{ page() }} / {{ pageCount() }}</span>
+  <button mat-icon-button type="button" aria-label="Sonraki sayfa" [disabled]="page() >= pageCount()" (click)="move(1)">
+    <mat-icon>chevron_right</mat-icon>
+  </button>
+</nav>

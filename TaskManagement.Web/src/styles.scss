@@ -7,6 +7,13 @@
 
 html {
   height: 100%;
+  --page-bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --column-bg: #f8fafc;
+  --badge-bg: #e9edf4;
+  --text-color: #172033;
+  --muted-text: #6d788b;
+  --border-color: #e3e8f0;
   @include mat.theme(
     (
       color: (
@@ -17,6 +24,16 @@ html {
       density: 0,
     )
   );
+}
+
+html.dark-theme {
+  --page-bg: #10141c;
+  --card-bg: #1a202b;
+  --column-bg: #141a23;
+  --badge-bg: #293242;
+  --text-color: #e8edf5;
+  --muted-text: #9ca8ba;
+  --border-color: #303949;
 }
 
 body {
@@ -35,6 +52,35 @@ body {
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  background: var(--page-bg);
+}
+
+.dark-theme .mat-mdc-dialog-surface,
+.dark-theme .mat-mdc-snack-bar-container {
+  color: var(--text-color);
+  background: var(--card-bg);
+}
+
+.dark-theme .mat-mdc-card-subtitle,
+.dark-theme .mat-mdc-form-field-hint,
+.dark-theme .mat-mdc-form-field .mdc-floating-label {
+  color: var(--muted-text) !important;
+}
+
+.dark-theme .mat-mdc-input-element,
+.dark-theme .mat-mdc-select-value,
+.dark-theme .mat-mdc-select-arrow,
+.dark-theme .mat-mdc-form-field-icon-prefix,
+.dark-theme .mat-mdc-form-field-icon-suffix {
+  color: var(--text-color) !important;
+}
+
+.dark-theme .mdc-text-field--outlined:not(.mdc-text-field--disabled) {
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: var(--border-color);
+  }
 }
 
 * {

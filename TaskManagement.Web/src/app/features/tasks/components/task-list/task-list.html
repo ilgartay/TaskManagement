@@ -1,0 +1,38 @@
+<section class="list-panel">
+  <header class="list-heading">
+    <div><h2>Görev listesi</h2><span>{{ filteredTasks().length }} kayıt</span></div>
+    <button type="button" class="reset-button" (click)="reset()">Filtreleri temizle</button>
+  </header>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Ara</mat-label><mat-icon matPrefix>search</mat-icon>
+      <input matInput [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Başlık veya açıklama" />
+    </mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Durum</mat-label><mat-select [value]="status()" (selectionChange)="status.set($event.value)"><mat-option value="all">Tümü</mat-option><mat-option [value]="TaskStatus.Pending">Bekliyor</mat-option><mat-option [value]="TaskStatus.InProgress">Devam ediyor</mat-option><mat-option [value]="TaskStatus.Completed">Tamamlandı</mat-option><mat-option [value]="TaskStatus.Cancelled">İptal edildi</mat-option></mat-select></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Öncelik</mat-label><mat-select [value]="priority()" (selectionChange)="priority.set($event.value)"><mat-option value="all">Tümü</mat-option><mat-option [value]="Priority.Low">Düşük</mat-option><mat-option [value]="Priority.Normal">Normal</mat-option><mat-option [value]="Priority.High">Yüksek</mat-option><mat-option [value]="Priority.Urgent">Acil</mat-option><mat-option [value]="Priority.Critical">Kritik</mat-option></mat-select></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Kategori</mat-label><mat-select [value]="categoryId()" (selectionChange)="categoryId.set($event.value)"><mat-option value="">Tümü</mat-option>@for (category of categories(); track category.id) { <mat-option [value]="category.id">{{ category.name }}</mat-option> }</mat-select></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Sıralama</mat-label><mat-select [value]="sort()" (selectionChange)="sort.set($event.value)"><mat-option value="created-desc">En yeni</mat-option><mat-option value="due-asc">Son tarih</mat-option><mat-option value="priority-desc">Öncelik</mat-option><mat-option value="title-asc">Başlık</mat-option></mat-select></mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <div class="state"><mat-spinner diameter="42" /><span>Görevler yükleniyor...</span></div>
+  } @else if (!filteredTasks().length) {
+    <div class="state empty"><mat-icon>manage_search</mat-icon><h3>Sonuç bulunamadı</h3><p>Filtreleri değiştirip tekrar deneyin.</p></div>
+  } @else {
+    <p class="drag-help"><mat-icon>drag_indicator</mat-icon>Durumu değiştirmek için kartı başka sütuna sürükleyebilirsiniz.</p>
+    <div class="board" cdkDropListGroup>
+      @for (columnStatus of statuses; track columnStatus) {
+        <section class="board-column">
+          <header><span>{{ statusLabel(columnStatus) }}</span><b>{{ tasksForStatus(columnStatus).length }}</b></header>
+          <div class="drop-zone" cdkDropList [cdkDropListData]="tasksForStatus(columnStatus)" [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="drop($event, columnStatus)">
+            @for (task of tasksForStatus(columnStatus); track task.id) {
+              <app-task-card [task]="task" [categoryColor]="categoryColor(task)" (view)="view.emit($event)" (edit)="edit.emit($event)" (remove)="remove.emit($event)" (statusChange)="statusChange.emit($event)" />
+            } @empty { <div class="column-empty">Buraya sürükle</div> }
+          </div>
+        </section>
+      }
+    </div>
+    <app-pagination [page]="page()" [pageSize]="pageSize" [total]="filteredTasks().length" (pageChange)="page.set($event)" />
+  }
+</section>

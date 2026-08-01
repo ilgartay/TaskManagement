@@ -1,0 +1,12 @@
+<header class="dialog-heading"><div><p>GÖREV DETAYI</p><h2 mat-dialog-title>{{ data.task.title }}</h2></div><button mat-icon-button type="button" aria-label="Kapat" (click)="close()"><mat-icon>close</mat-icon></button></header>
+<mat-dialog-content>
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error()) { <p class="detail-error">{{ error() }}</p> }
+  <div class="detail-meta"><span class="priority priority-{{ data.task.priority }}">{{ priorityLabel(data.task.priority) }}</span><span><mat-icon>radio_button_checked</mat-icon>{{ statusLabel(data.task.status) }}</span>@if(data.task.categoryName){<span><i [style.background]="data.categoryColor"></i>{{ data.task.categoryName }}</span>}@if(data.task.dueDate){<span [class.warning]="dueState(data.task) !== 'none'"><mat-icon>event</mat-icon>{{ data.task.dueDate | date:'dd.MM.yyyy' }}</span>}</div>
+  @if (data.task.description) { <p class="description">{{ data.task.description }}</p> }
+  <div class="progress"><mat-progress-bar mode="determinate" [value]="taskProgress(data.task.status)"/><span>%{{ taskProgress(data.task.status) }}</span></div>
+  <mat-divider />
+  <section><h3><mat-icon>attach_file</mat-icon>Dosyalar</h3><app-file-upload [uploading]="uploading()" (selected)="upload($event)"/><div class="attachments">@for(item of attachments();track item.id){<button type="button" (click)="download(item)"><mat-icon>download</mat-icon><span>{{ item.fileName }}</span><small>{{ item.fileSize / 1024 | number:'1.0-0' }} KB</small></button>}@empty{<p>Eklenmiş dosya yok.</p>}</div></section>
+  <mat-divider />
+  <section><h3><mat-icon>forum</mat-icon>Yorumlar</h3><app-comment-section [comments]="comments()" [saving]="savingComment()" (add)="addComment($event)"/></section>
+</mat-dialog-content>
