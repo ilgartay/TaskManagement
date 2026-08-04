@@ -46,6 +46,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Jwt:Audience", "TaskManagementTests");
         builder.UseSetting("Jwt:ExpiresInMinutes", "15");
         builder.UseSetting("Storage:UploadPath", _uploadPath);
+        builder.UseSetting("Storage:MaxFileSizeBytes", (10 * 1024 * 1024).ToString());
+        builder.UseSetting("Cors:AllowedOrigins:0", "http://localhost:4200");
         builder.ConfigureAppConfiguration((_, configuration) =>
         {
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -56,7 +58,9 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Issuer"] = "TaskManagementTests",
                 ["Jwt:Audience"] = "TaskManagementTests",
                 ["Jwt:ExpiresInMinutes"] = "15",
-                ["Storage:UploadPath"] = _uploadPath
+                ["Storage:UploadPath"] = _uploadPath,
+                ["Storage:MaxFileSizeBytes"] = (10 * 1024 * 1024).ToString(),
+                ["Cors:AllowedOrigins:0"] = "http://localhost:4200"
             });
         });
 

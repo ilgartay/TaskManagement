@@ -1,6 +1,7 @@
 using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -21,13 +22,22 @@ if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32
         "Geliştirme ortamında .NET User Secrets veya Jwt__Key ortam değişkenini kullanın.");
 }
 
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()
+    ?.Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .ToArray() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://127.0.0.1:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
     });
 });
 
@@ -35,17 +45,27 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<ITaskAttachmentService, TaskAttachmentService>();
 
-var dbProvider = builder.Configuration["DatabaseProvider"];
+var dbProvider = builder.Configuration["DatabaseProvider"]
+    ?? throw new InvalidOperationException("DatabaseProvider yapılandırılmalıdır.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    if (dbProvider == "PostgreSQL")
+    if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
     {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection"));
+        var connectionString = builder.Configuration.GetConnectionString("PostgreSQLConnection")
+            ?? throw new InvalidOperationException("PostgreSQLConnection yapılandırılmalıdır.");
+        options.UseNpgsql(connectionString);
     }
-    else if (dbProvider == "Oracle")
+    else if (dbProvider.Equals("Oracle", StringComparison.OrdinalIgnoreCase))
     {
-        options.UseOracle(builder.Configuration.GetConnectionString("OracleConnection"));
+        var connectionString = builder.Configuration.GetConnectionString("OracleConnection")
+            ?? throw new InvalidOperationException("OracleConnection yapılandırılmalıdır.");
+        options.UseOracle(connectionString);
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "DatabaseProvider yalnızca PostgreSQL veya Oracle olabilir.");
     }
 });
 
@@ -77,6 +97,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
+builder.Services.AddHealthChecks();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -108,17 +135,29 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+var applyMigrations = app.Environment.IsDevelopment()
+    || builder.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup");
+
+if (applyMigrations)
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.Migrate();
+}
 
+if (app.Environment.IsDevelopment())
+{
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -129,6 +168,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
 

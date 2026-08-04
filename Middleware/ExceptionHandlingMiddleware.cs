@@ -34,7 +34,10 @@ namespace TaskManagement.API.Middleware
                     _ => (int)HttpStatusCode.InternalServerError
                 };
 
-                var response = new { message = ex.Message };
+                var message = context.Response.StatusCode == (int)HttpStatusCode.InternalServerError
+                    ? "Beklenmeyen bir sunucu hatası oluştu."
+                    : ex.Message;
+                var response = new { message };
                 await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }
         }

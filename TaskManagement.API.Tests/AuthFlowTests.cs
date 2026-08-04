@@ -54,4 +54,19 @@ public sealed class AuthFlowTests : IntegrationTestBase
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Invalid_Registration_Model_Returns_Bad_Request()
+    {
+        var response = await Client.PostAsJsonAsync("/api/auth/register", new CreateUserDto
+        {
+            Username = "x",
+            Email = "invalid-email",
+            FirstName = "",
+            LastName = "",
+            Password = "123"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

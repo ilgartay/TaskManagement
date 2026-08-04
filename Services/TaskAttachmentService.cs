@@ -11,6 +11,7 @@ namespace TaskManagement.API.Services
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly string _uploadPath;
+        private readonly long _maxFileSize;
 
         public TaskAttachmentService(
             ApplicationDbContext context,
@@ -22,6 +23,8 @@ namespace TaskManagement.API.Services
             _mapper = mapper;
             _uploadPath = configuration["Storage:UploadPath"]
                 ?? Path.Combine(env.ContentRootPath, "Uploads");
+            _maxFileSize = configuration.GetValue<long?>("Storage:MaxFileSizeBytes")
+                ?? 10 * 1024 * 1024;
 
             if (!Directory.Exists(_uploadPath))
                 Directory.CreateDirectory(_uploadPath);
@@ -37,6 +40,9 @@ namespace TaskManagement.API.Services
 
             if (file.Length == 0)
                 throw new InvalidOperationException("Dosya boş.");
+
+            if (file.Length > _maxFileSize)
+                throw new InvalidOperationException("Dosya en fazla 10 MB olabilir.");
 
             var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
             var filePath = Path.Combine(_uploadPath, uniqueFileName);

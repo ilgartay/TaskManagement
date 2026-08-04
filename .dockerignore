@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.env
+**/bin
+**/obj
+TaskManagement.API.Tests
+TaskManagement.Web/node_modules
+TaskManagement.Web/dist
+Uploads
+deploy/certs

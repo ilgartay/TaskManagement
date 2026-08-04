@@ -43,4 +43,26 @@ public sealed class AttachmentTests : IntegrationTestBase
             $"/api/tasks/attachments/{attachment.Id}/download");
         Assert.Equal(expected, downloaded);
     }
+
+    [Fact]
+    public async Task File_Larger_Than_Ten_Megabytes_Is_Rejected()
+    {
+        await RegisterAndAuthorizeAsync("large-file");
+        var taskResponse = await Client.PostAsJsonAsync("/api/tasks", new CreateTaskDto
+        {
+            Title = "Büyük dosya testi",
+            Priority = Priority.Normal
+        });
+        taskResponse.EnsureSuccessStatusCode();
+        var task = (await taskResponse.Content.ReadFromJsonAsync<TaskItemDto>())!;
+
+        using var form = new MultipartFormDataContent();
+        using var file = new ByteArrayContent(new byte[10 * 1024 * 1024 + 1]);
+        file.Headers.ContentType = new("application/octet-stream");
+        form.Add(file, "file", "large.bin");
+
+        var response = await Client.PostAsync($"/api/tasks/{task.Id}/attachments", form);
+
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, response.StatusCode);
+    }
 }

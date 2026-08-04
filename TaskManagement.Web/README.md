@@ -27,3 +27,5 @@ Uygulama `http://localhost:4200` adresinde açılır.
 npm run build
 npm test -- --watch=false
 ```
+
+Production build'de API adresi aynı origin altındaki `/api` yoludur. Docker kurulumu Angular dosyalarını NGINX ile sunar, `/api` isteklerini backend'e yönlendirir ve SSL sonlandırmasını yapar.

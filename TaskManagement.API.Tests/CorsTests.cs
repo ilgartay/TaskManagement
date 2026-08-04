@@ -22,4 +22,26 @@ public sealed class CorsTests : IntegrationTestBase
             "http://localhost:4200",
             response.Headers.GetValues("Access-Control-Allow-Origin").Single());
     }
+
+    [Fact]
+    public async Task Unknown_Origin_Is_Not_Allowed()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/auth/login");
+        request.Headers.Add("Origin", "https://not-allowed.example");
+        request.Headers.Add("Access-Control-Request-Method", "POST");
+
+        var response = await Client.SendAsync(request);
+
+        Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
+    }
+
+    [Fact]
+    public async Task Health_Endpoint_Is_Public()
+    {
+        Client.DefaultRequestHeaders.Authorization = null;
+
+        var response = await Client.GetAsync("/health");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 }
