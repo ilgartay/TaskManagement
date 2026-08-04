@@ -12,11 +12,16 @@ namespace TaskManagement.API.Services
         private readonly IMapper _mapper;
         private readonly string _uploadPath;
 
-        public TaskAttachmentService(ApplicationDbContext context, IMapper mapper, IWebHostEnvironment env)
+        public TaskAttachmentService(
+            ApplicationDbContext context,
+            IMapper mapper,
+            IWebHostEnvironment env,
+            IConfiguration configuration)
         {
             _context = context;
             _mapper = mapper;
-            _uploadPath = Path.Combine(env.ContentRootPath, "Uploads");
+            _uploadPath = configuration["Storage:UploadPath"]
+                ?? Path.Combine(env.ContentRootPath, "Uploads");
 
             if (!Directory.Exists(_uploadPath))
                 Directory.CreateDirectory(_uploadPath);
