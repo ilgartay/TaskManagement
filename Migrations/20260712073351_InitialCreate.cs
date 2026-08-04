@@ -11,19 +11,29 @@ namespace TaskManagement.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            var oracle = ActiveProvider.Contains("Oracle", StringComparison.OrdinalIgnoreCase);
+            var guidType = oracle ? "RAW(16)" : "uuid";
+            var dateTimeType = oracle ? "TIMESTAMP(7)" : "timestamp with time zone";
+            var boolType = oracle ? "NUMBER(1)" : "boolean";
+            var intType = oracle ? "NUMBER(10)" : "integer";
+            var longType = oracle ? "NUMBER(19)" : "bigint";
+            string TextType(int length) => oracle
+                ? $"NVARCHAR2({length})"
+                : $"character varying({length})";
+
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Username = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    Id = table.Column<Guid>(type: guidType, nullable: false),
+                    Username = table.Column<string>(type: TextType(100), maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: TextType(200), maxLength: 200, nullable: false),
+                    PasswordHash = table.Column<string>(type: TextType(200), maxLength: 200, nullable: false),
+                    FirstName = table.Column<string>(type: TextType(100), maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: TextType(100), maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: dateTimeType, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: dateTimeType, nullable: false),
+                    IsActive = table.Column<bool>(type: boolType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -34,12 +44,12 @@ namespace TaskManagement.API.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Color = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: guidType, nullable: false),
+                    Name = table.Column<string>(type: TextType(100), maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: TextType(500), maxLength: 500, nullable: true),
+                    Color = table.Column<string>(type: TextType(20), maxLength: 20, nullable: false),
+                    UserId = table.Column<Guid>(type: guidType, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: dateTimeType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -56,17 +66,17 @@ namespace TaskManagement.API.Migrations
                 name: "Tasks",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Priority = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: guidType, nullable: false),
+                    Title = table.Column<string>(type: TextType(200), maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: TextType(2000), maxLength: 2000, nullable: true),
+                    Priority = table.Column<int>(type: intType, nullable: false),
+                    Status = table.Column<int>(type: intType, nullable: false),
+                    DueDate = table.Column<DateTime>(type: dateTimeType, nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: dateTimeType, nullable: true),
+                    UserId = table.Column<Guid>(type: guidType, nullable: false),
+                    CategoryId = table.Column<Guid>(type: guidType, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: dateTimeType, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: dateTimeType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -89,13 +99,13 @@ namespace TaskManagement.API.Migrations
                 name: "TaskAttachments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TaskId = table.Column<Guid>(type: "uuid", nullable: false),
-                    FileName = table.Column<string>(type: "text", nullable: false),
-                    FilePath = table.Column<string>(type: "text", nullable: false),
-                    FileSize = table.Column<long>(type: "bigint", nullable: false),
-                    ContentType = table.Column<string>(type: "text", nullable: false),
-                    UploadedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: guidType, nullable: false),
+                    TaskId = table.Column<Guid>(type: guidType, nullable: false),
+                    FileName = table.Column<string>(type: TextType(255), maxLength: 255, nullable: false),
+                    FilePath = table.Column<string>(type: TextType(1000), maxLength: 1000, nullable: false),
+                    FileSize = table.Column<long>(type: longType, nullable: false),
+                    ContentType = table.Column<string>(type: TextType(100), maxLength: 100, nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: dateTimeType, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,11 +122,11 @@ namespace TaskManagement.API.Migrations
                 name: "TaskComments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TaskId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Comment = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: guidType, nullable: false),
+                    TaskId = table.Column<Guid>(type: guidType, nullable: false),
+                    UserId = table.Column<Guid>(type: guidType, nullable: false),
+                    Comment = table.Column<string>(type: TextType(2000), maxLength: 2000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: dateTimeType, nullable: false)
                 },
                 constraints: table =>
                 {

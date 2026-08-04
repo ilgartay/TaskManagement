@@ -1,3 +1,5 @@
+using TaskManagement.API.Models;
+
 namespace TaskManagement.API.DTOs
 {
     public class UserDto
@@ -9,5 +11,6 @@ namespace TaskManagement.API.DTOs
         public string LastName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; }
+        public UserRole Role { get; set; }
     }
 }

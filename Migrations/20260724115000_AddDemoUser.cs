@@ -12,6 +12,8 @@ namespace TaskManagement.API.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            var oracle = ActiveProvider.Contains("Oracle", StringComparison.OrdinalIgnoreCase);
+
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[]
@@ -26,18 +28,31 @@ namespace TaskManagement.API.Migrations
                     "UpdatedAt",
                     "Username"
                 },
-                columnTypes: new[]
-                {
-                    "uuid",
-                    "timestamp with time zone",
-                    "text",
-                    "text",
-                    "boolean",
-                    "text",
-                    "text",
-                    "timestamp with time zone",
-                    "text"
-                },
+                columnTypes: oracle
+                    ? new[]
+                    {
+                        "RAW(16)",
+                        "TIMESTAMP(7)",
+                        "NVARCHAR2(2000)",
+                        "NVARCHAR2(2000)",
+                        "NUMBER(1)",
+                        "NVARCHAR2(2000)",
+                        "NVARCHAR2(2000)",
+                        "TIMESTAMP(7)",
+                        "NVARCHAR2(2000)"
+                    }
+                    : new[]
+                    {
+                        "uuid",
+                        "timestamp with time zone",
+                        "text",
+                        "text",
+                        "boolean",
+                        "text",
+                        "text",
+                        "timestamp with time zone",
+                        "text"
+                    },
                 values: new object[]
                 {
                     new Guid("11111111-1111-1111-1111-111111111111"),
@@ -54,10 +69,14 @@ namespace TaskManagement.API.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            var keyColumnType = ActiveProvider.Contains("Oracle", StringComparison.OrdinalIgnoreCase)
+                ? "RAW(16)"
+                : "uuid";
+
             migrationBuilder.DeleteData(
                 table: "Users",
                 keyColumn: "Id",
-                keyColumnType: "uuid",
+                keyColumnType: keyColumnType,
                 keyValue: new Guid("11111111-1111-1111-1111-111111111111"));
         }
     }

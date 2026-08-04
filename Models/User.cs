@@ -11,6 +11,7 @@ namespace TaskManagement.API.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
+        public UserRole Role { get; set; } = UserRole.User;
 
         public ICollection<Category> Categories { get; set; } = new List<Category>();
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();

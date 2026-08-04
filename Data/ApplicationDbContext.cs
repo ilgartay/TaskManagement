@@ -24,6 +24,24 @@ namespace TaskManagement.API.Data
     modelBuilder.Entity<User>()
     .HasIndex(x => x.Email)
     .IsUnique();
+    modelBuilder.Entity<User>()
+    .Property(x => x.Role)
+    .HasConversion<string>()
+    .HasMaxLength(20);
+    modelBuilder.Entity<User>().Property(x => x.Username).HasMaxLength(100);
+    modelBuilder.Entity<User>().Property(x => x.Email).HasMaxLength(200);
+    modelBuilder.Entity<User>().Property(x => x.PasswordHash).HasMaxLength(200);
+    modelBuilder.Entity<User>().Property(x => x.FirstName).HasMaxLength(100);
+    modelBuilder.Entity<User>().Property(x => x.LastName).HasMaxLength(100);
+    modelBuilder.Entity<Category>().Property(x => x.Name).HasMaxLength(100);
+    modelBuilder.Entity<Category>().Property(x => x.Description).HasMaxLength(500);
+    modelBuilder.Entity<Category>().Property(x => x.Color).HasMaxLength(20);
+    modelBuilder.Entity<TaskItem>().Property(x => x.Title).HasMaxLength(200);
+    modelBuilder.Entity<TaskItem>().Property(x => x.Description).HasMaxLength(2000);
+    modelBuilder.Entity<TaskAttachment>().Property(x => x.FileName).HasMaxLength(255);
+    modelBuilder.Entity<TaskAttachment>().Property(x => x.FilePath).HasMaxLength(1000);
+    modelBuilder.Entity<TaskAttachment>().Property(x => x.ContentType).HasMaxLength(100);
+    modelBuilder.Entity<TaskComment>().Property(x => x.Comment).HasMaxLength(2000);
     modelBuilder.Entity<Category>()
     .HasOne(c => c.User)
     .WithMany(u => u.Categories)
@@ -68,7 +86,8 @@ namespace TaskManagement.API.Data
         LastName = "User",
         CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-        IsActive = true
+        IsActive = true,
+        Role = UserRole.User
     }
 );
 }
