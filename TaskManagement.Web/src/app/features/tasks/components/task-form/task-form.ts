@@ -30,7 +30,7 @@ export class TaskForm {
 
   constructor(formBuilder: FormBuilder) {
     this.form = formBuilder.nonNullable.group({
-      title: ['', [Validators.required, Validators.maxLength(200)]],
+      title: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(200)]],
       description: ['', Validators.maxLength(2000)],
       priority: [Priority.Normal, Validators.required],
       status: [TaskStatus.Pending, Validators.required],

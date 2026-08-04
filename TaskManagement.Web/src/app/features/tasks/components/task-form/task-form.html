@@ -11,6 +11,7 @@
         <input matInput formControlName="title" />
         <mat-hint align="end">{{ form.controls.title.value.length }}/200</mat-hint>
         @if (form.controls.title.touched && form.controls.title.hasError('required')) { <mat-error>Başlık zorunludur.</mat-error> }
+        @else if (form.controls.title.touched && form.controls.title.hasError('pattern')) { <mat-error>Başlık yalnızca boşluk içeremez.</mat-error> }
       </mat-form-field>
 
       <mat-form-field appearance="outline">

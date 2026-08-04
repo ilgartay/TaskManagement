@@ -1,3 +1,8 @@
+export enum UserRole {
+  User = 0,
+  Admin = 1,
+}
+
 export interface User {
   id: string;
   username: string;
@@ -6,6 +11,7 @@ export interface User {
   lastName: string;
   createdAt: string;
   isActive: boolean;
+  role: UserRole;
 }
 
 export interface LoginRequest {
